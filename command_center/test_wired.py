@@ -1,33 +1,44 @@
 import sys
 import os
 
-# Point to NLP and tools modules
 sys.path.append(os.path.abspath("../nlp"))
 sys.path.append(os.path.abspath("../tools_assistant"))
+sys.path.append(os.path.abspath("../speech"))
 
-# Set working directory to nlp so model paths resolve correctly
 os.chdir(os.path.abspath("../nlp"))
 
 from pipeline import NLPBrain
 from core import CommandCenter
 from registry import TOOLS
+from speaker import speak
+from listener import listen
 
-# Boot both modules
+# Boot
 nlp = NLPBrain()
 cc  = CommandCenter(TOOLS)
 
+speak("Arcn online.")
+
 # Live loop
 while True:
-    text = input("\nYou: ")
-    if text.lower() == "quit":
+
+    text = listen()
+
+    if not text:
+        continue
+
+    if "goodbye" in text or "shut down" in text:
+        speak("Shutting down.")
         break
 
-    # NLP processes text
+    # NLP processes
     packet = nlp.predict(text)
     packet["source"] = "nlp"
 
-    print(f"NLP: {packet}")
-
-    # CC handles packet
+    # CC handles
     result = cc.handle(packet)
-    print(f"CC:  {result}")
+
+    # Speak the response
+    response = result.get("response", "")
+    if response:
+        speak(response)
