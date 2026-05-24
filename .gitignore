@@ -1,0 +1,66 @@
+# Virtual environments
+venv/
+env/
+.venv/
+venv.bak/
+
+# Python cache
+__pycache__/
+*.py[codz]
+*.pyc
+*.pyo
+*.pyd
+*$py.class
+
+# Models (too large for git)
+**/models/intent_model/
+*.safetensors
+*.bin
+*.pt
+*.pth
+
+# Audio temp files
+*.mp3
+*.wav
+
+# Arcn runtime files
+notes.txt
+assistant_state.json
+audio.wav
+
+# Environment variables
+.env
+.envrc
+
+# VS Code
+.vscode/
+
+# Mac
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+wheels/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
+*.log
+pip-log.txt
+
+# Jupyter
+.ipynb_checkpoints/
+
+# mypy
+.mypy_cache/
+
+# Ruff
+.ruff_cache/
