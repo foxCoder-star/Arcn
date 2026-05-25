@@ -17,31 +17,37 @@ class CommandCenter:
     # Receives packet from NLP
     # or Vision module
     # -------------------------
-    def handle(self, packet: dict) -> dict:
+    # Intents that should ALWAYS take priority
+PRIORITY_INTENTS = {
+    "stop_cancel", "greet", "how_are_you",
+    "tell_time", "tell_date", "cancel_timer"
+}
 
-        source     = packet.get("source", "nlp")
-        intent     = packet.get("intent")
-        confidence = packet.get("confidence", 0.0)
-        entities   = packet.get("entities", {})
-        requires_clarification = packet.get("requires_clarification", False)
+def handle(self, packet: dict) -> dict:
 
-        # -------------------------
-        # 1. Unknown intent
-        # -------------------------
-        if intent == "unknown_intent":
-            return self._unknown()
+    source     = packet.get("source", "nlp")
+    intent     = packet.get("intent")
+    entities   = packet.get("entities", {})
+    requires_clarification = packet.get("requires_clarification", False)
 
-        # -------------------------
-        # 2. Clarification needed
-        # -------------------------
-        if requires_clarification:
-            return self._clarify(intent, entities)
-
-        # -------------------------
-        # 3. Route to action
-        # -------------------------
+    # Priority intents always route directly
+    if intent in PRIORITY_INTENTS:
+        self.state.set_last_intent(intent)
         return self.router.route(intent, entities, source)
 
+    # If unknown or clarification but last was ask_question
+    if intent == "unknown_intent" or requires_clarification:
+        last = self.state.get_last_intent()
+        if last == "ask_question":
+            intent = "ask_question"
+            requires_clarification = False
+        elif intent == "unknown_intent":
+            return self._unknown()
+        else:
+            return self._clarify(intent, entities)
+
+    self.state.set_last_intent(intent)
+    return self.router.route(intent, entities, source)
     # -------------------------
     # Clarification response
     # -------------------------

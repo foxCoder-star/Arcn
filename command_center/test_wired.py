@@ -25,15 +25,21 @@ while True:
     text = listen()
 
     if not text:
-        continue
+        continue 
 
-    if "goodbye" in text or "shut down" in text:
+    # Shutdown commands
+    SHUTDOWN_WORDS = ["goodbye", "shut down", "exit arcn", "stop arcn", "quit"]
+
+    if any(word in text for word in SHUTDOWN_WORDS):
         speak("Shutting down.")
         break
 
     # NLP processes
     packet = nlp.predict(text)
     packet["source"] = "nlp"
+    if "entities" not in packet:
+        packet["entities"] = {}
+    packet["entities"]["raw_text"] = text  # always inject, outside the if
 
     # CC handles
     result = cc.handle(packet)

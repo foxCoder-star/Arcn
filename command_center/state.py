@@ -58,3 +58,14 @@ class StateManager:
 
         with open(STATE_FILE, "w") as f:
             json.dump(state, f, indent=4)
+    
+    # -------------------------
+    # Track last intent
+    # -------------------------
+    def set_last_intent(self, intent: str):
+        state = self.get_state()
+        state["last_intent"] = intent
+        self._write(state)
+
+    def get_last_intent(self) -> str:
+        return self.get_state().get("last_intent", "")

@@ -258,8 +258,64 @@ def get_weather(entities: dict = {}):
 def send_message(entities: dict = {}):
     print("ARCN: Messaging coming soon.")
 
+# -------------------------
+# Conversation history for
+# multi-turn Mistral context
+# -------------------------
+_conversation_history = []
+
+
 def ask_question(entities: dict = {}):
-    print("ARCN: Knowledge engine coming soon.")
+    import ollama
+    global _conversation_history
+
+
+
+    topic = (
+        entities.get("topic", "")
+        or entities.get("query", "")
+        or entities.get("raw_text", "")
+    )
+
+    if not topic:
+        print("ARCN: What would you like to know?")
+        return
+
+    print("ARCN: Thinking...")
+
+    # Add user message to history
+    _conversation_history.append({
+        "role": "user",
+        "content": topic
+    })
+
+    # Build full message list with system prompt
+    messages = [
+        {
+            "role": "system",
+            "content": "You are Arcn, a helpful personal AI assistant. Answer concisely and clearly. No markdown, no bullet points, just plain conversational responses."
+        }
+    ] + _conversation_history
+
+    response = ollama.chat(
+        model="mistral",
+        messages=messages
+    )
+
+    answer = response["message"]["content"]
+
+    # Add Arcn response to history
+    _conversation_history.append({
+        "role": "assistant",
+        "content": answer
+    })
+
+    # Keep history to last 10 turns so it doesn't grow forever
+    if len(_conversation_history) > 20:
+        _conversation_history = _conversation_history[-20:]
+
+    print(f"ARCN: {answer}")
+    return answer
 
 def create_reminder(entities: dict = {}):
     print("ARCN: Reminders coming soon.")
@@ -316,7 +372,7 @@ TOOLS = {
     "developer_mode"    : {"function": developer_mode,     "confirmation": "Entering developer workspace", "type": "mode"},
     "study_mode"        : {"function": study_mode,         "confirmation": "Entering study mode",        "type": "mode"},
 
-    # COMING SOON
+    # Misallaneous / WIP / 
     "play_music"        : {"function": play_music,         "confirmation": "",                           "type": "media"},
     "pause_music"       : {"function": pause_music,        "confirmation": "",                           "type": "media"},
     "skip_song"         : {"function": skip_song,          "confirmation": "",                           "type": "media"},

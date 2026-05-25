@@ -114,12 +114,16 @@ class Router:
             return self._no_tool(intent)
 
         try:
-            tool["function"](entities)
+            result = tool["function"](entities)
+
+            # Use returned value as response if available
+            # otherwise fall back to confirmation string
+            response = result if isinstance(result, str) and result else tool.get("confirmation", "Done.")
 
             return self._response(
                 status       = "executed",
                 intent       = intent,
-                response     = tool.get("confirmation", "Done."),
+                response     = response,
                 action_taken = True
             )
 
