@@ -41,6 +41,7 @@ while True:
         packet["entities"] = {}
     packet["entities"]["raw_text"] = text  # always inject, outside the if
 
+
     # CC handles
     result = cc.handle(packet)
 

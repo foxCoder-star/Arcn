@@ -2,6 +2,13 @@ from router import Router
 from state import StateManager
 
 
+# Intents that should ALWAYS take priority
+PRIORITY_INTENTS = {
+    "stop_cancel", "greet", "how_are_you",
+    "tell_time", "tell_date", "cancel_timer"
+}
+
+
 class CommandCenter:
 
     def __init__(self, tools: dict):
@@ -14,40 +21,33 @@ class CommandCenter:
 
     # -------------------------
     # Main entry point
-    # Receives packet from NLP
-    # or Vision module
     # -------------------------
-    # Intents that should ALWAYS take priority
-PRIORITY_INTENTS = {
-    "stop_cancel", "greet", "how_are_you",
-    "tell_time", "tell_date", "cancel_timer"
-}
+    def handle(self, packet: dict) -> dict:
 
-def handle(self, packet: dict) -> dict:
+        source     = packet.get("source", "nlp")
+        intent     = packet.get("intent")
+        entities   = packet.get("entities", {})
+        requires_clarification = packet.get("requires_clarification", False)
 
-    source     = packet.get("source", "nlp")
-    intent     = packet.get("intent")
-    entities   = packet.get("entities", {})
-    requires_clarification = packet.get("requires_clarification", False)
+        # Priority intents always route directly
+        if intent in PRIORITY_INTENTS:
+            self.state.set_last_intent(intent)
+            return self.router.route(intent, entities, source)
 
-    # Priority intents always route directly
-    if intent in PRIORITY_INTENTS:
+        # If unknown or clarification but last was ask_question
+        if intent == "unknown_intent" or requires_clarification:
+            last = self.state.get_last_intent()
+            if last == "ask_question":
+                intent = "ask_question"
+                requires_clarification = False
+            elif intent == "unknown_intent":
+                return self._unknown()
+            else:
+                return self._clarify(intent, entities)
+
         self.state.set_last_intent(intent)
         return self.router.route(intent, entities, source)
 
-    # If unknown or clarification but last was ask_question
-    if intent == "unknown_intent" or requires_clarification:
-        last = self.state.get_last_intent()
-        if last == "ask_question":
-            intent = "ask_question"
-            requires_clarification = False
-        elif intent == "unknown_intent":
-            return self._unknown()
-        else:
-            return self._clarify(intent, entities)
-
-    self.state.set_last_intent(intent)
-    return self.router.route(intent, entities, source)
     # -------------------------
     # Clarification response
     # -------------------------

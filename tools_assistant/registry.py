@@ -3,6 +3,24 @@ import urllib.parse
 import threading
 import datetime
 
+# -------------------------
+# Music tools
+# -------------------------
+def play_music(entities: dict = {}):
+    os.system("open -a Spotify")
+    os.system("osascript -e 'tell application \"Spotify\" to play'")
+    print("ARCN: Playing music")
+    return "Playing music"
+
+def pause_music(entities: dict = {}):
+    os.system("osascript -e 'tell application \"Spotify\" to playpause'")
+    print("ARCN: Paused")
+    return "Paused"
+
+def skip_song(entities: dict = {}):
+    os.system("osascript -e 'tell application \"Spotify\" to next track'")
+    print("ARCN: Skipped")
+    return "Skipped"
 
 # -------------------------
 # TIMER STATE
@@ -243,14 +261,6 @@ def study_mode(entities: dict = {}):
 # (real implementations coming)
 # -------------------------
 
-def play_music(entities: dict = {}):
-    print("ARCN: Music playback coming soon.")
-
-def pause_music(entities: dict = {}):
-    print("ARCN: Music playback coming soon.")
-
-def skip_song(entities: dict = {}):
-    print("ARCN: Music playback coming soon.")
 
 def get_weather(entities: dict = {}):
     print("ARCN: Weather integration coming soon.")
