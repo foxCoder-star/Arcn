@@ -4,7 +4,7 @@ __pycache__/
 *.py[codz]
 *$py.class
 
-models/
+models/intent_model/
 *.safetensors
 
 # C extensions
