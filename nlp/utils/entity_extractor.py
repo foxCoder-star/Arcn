@@ -175,6 +175,9 @@ def _filter_by_intent(entities: dict, intent: str) -> dict:
 # Topic extraction
 # (for notes, questions, searches)
 # -------------------------
+
+
+
 def _extract_topic(text: str, intent: str) -> dict:
 
     entities = {}
@@ -184,7 +187,6 @@ def _extract_topic(text: str, intent: str) -> dict:
     if intent not in topic_intents:
         return entities
 
-    # Strip common prefix phrases to get the core topic
     strip_phrases = [
         "remind me to", "remind me about", "remind me",
         "search for ", "look up", "google", "find information about",
@@ -202,7 +204,6 @@ def _extract_topic(text: str, intent: str) -> dict:
         entities[key] = cleaned
 
     return entities
-
 
 # -------------------------
 # Main extraction function

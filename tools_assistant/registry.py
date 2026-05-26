@@ -2,6 +2,12 @@ import os
 import urllib.parse
 import threading
 import datetime
+from dotenv import load_dotenv
+import requests
+
+load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
+OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY")
+DEFAULT_CITY = "Chennai"
 
 # -------------------------
 # Music tools
@@ -262,8 +268,49 @@ def study_mode(entities: dict = {}):
 # -------------------------
 
 
+
+#OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY")
+#DEFAULT_CITY = "Kelambakkam"
+
 def get_weather(entities: dict = {}):
-    print("ARCN: Weather integration coming soon.")
+    city = entities.get("location", DEFAULT_CITY)
+
+    if not OPENWEATHER_API_KEY:
+        print("ARCN: No weather API key found.")
+        return "Weather API key is missing."
+
+    try:
+        url = "https://api.openweathermap.org/data/2.5/weather"
+        params = {
+            "q"     : city,
+            "appid" : OPENWEATHER_API_KEY,
+            "units" : "metric"
+        }
+
+        response = requests.get(url, params=params, timeout=5)
+        data     = response.json()
+
+        if response.status_code != 200:
+            print(f"ARCN: Weather error — {data.get('message', 'unknown error')}")
+            return f"Couldn't get weather for {city}."
+
+        temp        = data["main"]["temp"]
+        feels_like  = data["main"]["feels_like"]
+        description = data["weather"][0]["description"]
+        humidity    = data["main"]["humidity"]
+
+        result = (
+            f"{city} — {description}, "
+            f"{temp}°C, feels like {feels_like}°C, "
+            f"humidity {humidity}%"
+        )
+
+        print(f"ARCN: {result}")
+        return result
+
+    except Exception as e:
+        print(f"ARCN: Weather fetch failed — {e}")
+        return "Couldn't reach the weather service."
 
 def send_message(entities: dict = {}):
     print("ARCN: Messaging coming soon.")
