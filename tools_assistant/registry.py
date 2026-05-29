@@ -329,7 +329,7 @@ def get_weather(entities: dict = {}):
             f"{rain_line}"
         )
 
-        print(f"ARCN: {response}")
+        #print(f"ARCN: {response}")
         return response
 
     except Exception as e:
@@ -398,8 +398,39 @@ def ask_question(entities: dict = {}):
     print(f"ARCN: {answer}")
     return answer
 
+from time_parser import parse_reminder_time
+
 def create_reminder(entities: dict = {}):
-    print("ARCN: Reminders coming soon.")
+    from state import StateManager
+    state = StateManager()
+
+    topic   = entities.get("topic", "") or state.get_pending_reminder()
+    raw     = entities.get("raw_text", "")
+
+    if not topic:
+        return "What should I remind you about?"
+
+    reminder_dt, needs_clarification = parse_reminder_time(entities, raw)
+
+    if needs_clarification:
+        state.set_pending_reminder(topic)
+        return "What time should I set the reminder for?"
+
+    # Clear pending once we have everything
+    state.clear_pending_reminder()
+
+    date_str = reminder_dt.strftime("%B %d, %Y %I:%M %p")
+
+    script = f'''
+    tell application "Reminders"
+        set newReminder to make new reminder
+        set name of newReminder to "{topic}"
+        set due date of newReminder to date "{date_str}"
+    end tell
+    '''
+
+    os.system(f"osascript -e '{script}'")
+    return f"Reminder set — {topic} at {reminder_dt.strftime('%I:%M %p on %B %d')}."
 
 
 # -------------------------

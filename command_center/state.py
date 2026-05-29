@@ -69,3 +69,19 @@ class StateManager:
 
     def get_last_intent(self) -> str:
         return self.get_state().get("last_intent", "")
+    
+    # -------------------------
+    # Pending reminder topic
+    # -------------------------
+    def set_pending_reminder(self, topic: str):
+        state = self.get_state()
+        state["pending_reminder_topic"] = topic
+        self._write(state)
+
+    def get_pending_reminder(self) -> str:
+        return self.get_state().get("pending_reminder_topic", "")
+
+    def clear_pending_reminder(self):
+        state = self.get_state()
+        state.pop("pending_reminder_topic", None)
+        self._write(state)

@@ -194,16 +194,47 @@ def _extract_topic(text: str, intent: str) -> dict:
         return entities
 
     strip_phrases = [
+        "could you remind me to",
+        "could you remind me about",
+        "can you remind me to",
+        "can you remind me about",
+        "please remind me to",
+        "please remind me about",   
         "remind me to", "remind me about", "remind me",
         "search for ", "look up", "google", "find information about",
         "take a note", "write down", "note that", "note to self",
         "tell me about", "explain", "what is", "how does", "who is",
-        "message", "text", "send a message to", "tell"
+         "text", "send a message to", "tell"
     ]
 
     cleaned = text.lower()
     for phrase in strip_phrases:
         cleaned = cleaned.replace(phrase, "").strip()
+    # Clean up any leftover filler words
+    filler = ["could you", "can you", "please", "hey", "actually"]
+    for word in filler:
+        cleaned = cleaned.replace(word, "").strip()
+
+    
+    # Strip time from topic for reminders
+    if intent == "create_reminder":
+        topic_cleaned = re.sub(
+            r'\b(at|by|on|for)?\s*\d{1,2}(:\d{2})?\s*(a\.?m\.?|p\.?m\.?)\b',
+            '',
+            cleaned,
+            flags=re.IGNORECASE
+        ).strip()
+        if topic_cleaned:
+             entities["topic"] = topic_cleaned.strip(" .")
+        return entities
+    # Strip relative time from topic
+    topic_cleaned = re.sub(
+        r'\bin\s+\d+\s*(s|sec|secs|seconds?|m|min|mins|minutes?|h|hr|hrs|hours?)\b',
+        '',
+        topic_cleaned,
+        flags=re.IGNORECASE
+    ).strip(" .")
+
 
     if cleaned:
         key = "query" if intent == "web_search" else "topic"

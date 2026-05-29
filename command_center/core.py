@@ -40,6 +40,11 @@ class CommandCenter:
             if last == "ask_question":
                 intent = "ask_question"
                 requires_clarification = False
+
+            elif last == "create_reminder":
+                intent = "create_reminder"
+                requires_clarification = False
+
             elif intent == "unknown_intent":
                 return self._unknown()
             else:
