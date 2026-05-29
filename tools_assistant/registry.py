@@ -269,44 +269,68 @@ def study_mode(entities: dict = {}):
 
 
 
-#OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY")
-#DEFAULT_CITY = "Kelambakkam"
+
 
 def get_weather(entities: dict = {}):
     city = entities.get("location", DEFAULT_CITY)
+    unit = entities.get("unit", "imperial")  # imperial = F, metric = C
 
     if not OPENWEATHER_API_KEY:
-        print("ARCN: No weather API key found.")
         return "Weather API key is missing."
 
     try:
-        url = "https://api.openweathermap.org/data/2.5/weather"
-        params = {
+        # Current weather
+        current_url = "https://api.openweathermap.org/data/2.5/weather"
+        current_params = {
             "q"     : city,
             "appid" : OPENWEATHER_API_KEY,
-            "units" : "metric"
+            "units" : unit
         }
 
-        response = requests.get(url, params=params, timeout=5)
-        data     = response.json()
+        current = requests.get(current_url, params=current_params, timeout=5)
+        current_data = current.json()
 
-        if response.status_code != 200:
-            print(f"ARCN: Weather error — {data.get('message', 'unknown error')}")
+        if current.status_code != 200:
             return f"Couldn't get weather for {city}."
 
-        temp        = data["main"]["temp"]
-        feels_like  = data["main"]["feels_like"]
-        description = data["weather"][0]["description"]
-        humidity    = data["main"]["humidity"]
+        temp        = round(current_data["main"]["temp"])
+        feels_like  = round(current_data["main"]["feels_like"])
+        humidity    = current_data["main"]["humidity"]
+        description = current_data["weather"][0]["description"]
+        unit_label  = "Fahrenheit" if unit == "imperial" else "Celsius"
+        degree_sign = "F" if unit == "imperial" else "C"
 
-        result = (
-            f"{city} — {description}, "
-            f"{temp}°C, feels like {feels_like}°C, "
-            f"humidity {humidity}%"
+        # Forecast — check for rain today
+        forecast_url = "https://api.openweathermap.org/data/2.5/forecast"
+        forecast_params = {
+            "q"     : city,
+            "appid" : OPENWEATHER_API_KEY,
+            "units" : unit,
+            "cnt"   : 8  # next 24 hours in 3hr blocks
+        }
+
+        forecast = requests.get(forecast_url, params=forecast_params, timeout=5)
+        forecast_data = forecast.json()
+
+        rain_expected = False
+        if forecast.status_code == 200:
+            for entry in forecast_data.get("list", []):
+                condition = entry["weather"][0]["main"].lower()
+                if "rain" in condition or "drizzle" in condition or "thunderstorm" in condition:
+                    rain_expected = True
+                    break
+
+        rain_line = "Rain is expected later today." if rain_expected else "No rain expected today."
+
+        response = (
+            f"Currently in {city}, it's {temp}°{degree_sign} "
+            f"with {description}. "
+            f"Feels like {feels_like}°{degree_sign}, humidity at {humidity}%. "
+            f"{rain_line}"
         )
 
-        print(f"ARCN: {result}")
-        return result
+        print(f"ARCN: {response}")
+        return response
 
     except Exception as e:
         print(f"ARCN: Weather fetch failed — {e}")

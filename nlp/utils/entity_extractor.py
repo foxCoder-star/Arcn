@@ -27,7 +27,7 @@ INTENT_SLOTS = {
     "web_search"       : ["query", "topic"],
     "open_app"         : ["app"],
     "close_app"        : ["app"],
-    "get_weather"      : ["location", "date", "relative_time"],
+    "get_weather"      : ["location", "date", "relative_time", "unit"],
     "take_note"        : ["topic"],
     "ask_question"     : ["topic"],
     "system_volume"    : ["direction", "amount"],
@@ -154,6 +154,12 @@ def _regex_entities(text: str) -> dict:
     bare_match = re.search(r"\b(\d+)\b", text_lower)
     if bare_match and "duration" not in entities and "amount" not in entities:
         entities["bare_number"] = bare_match.group(1)
+
+    # Temperature unit
+    if any(w in text_lower for w in ["fahrenheit", "in f", "degrees f"]):
+        entities["unit"] = "imperial"
+    elif any(w in text_lower for w in ["celsius", "in c", "degrees c"]):
+        entities["unit"] = "metric"
 
     return entities
 
